@@ -3,7 +3,7 @@ import { requireAuth } from '../../../utils/supabase/api-helpers'
 
 const COOPER_API_URL = 'https://cooper-api.com'
 const COOPER_API_KEY = process.env.COOPER_API_KEY
-const MODEL = 'nano-banana-2'
+const MODEL = 'imagen-3.0-generate-002'
 
 const FRIDGE_STYLES: Record<string, string> = {
   'retro-american': '复古美式双开门冰箱，奶油白色烤漆，圆角设计，镀铬把手，正面视图，纯白背景',
