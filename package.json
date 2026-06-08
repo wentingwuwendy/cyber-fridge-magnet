@@ -1,0 +1,24 @@
+{
+  "name": "cyber-fridge-magnet",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.5.2",
+    "@supabase/supabase-js": "^2.47.0",
+    "next": "^14.2.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "sharp": "^0.33.5"
+  },
+  "devDependencies": {
+    "@types/node": "20.19.42",
+    "@types/react": "18.3.31",
+    "@types/react-dom": "^18.3.0",
+    "typescript": "5.9.3"
+  }
+}
