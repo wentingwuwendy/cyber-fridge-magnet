@@ -1,16 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createAdminClient } from './server'
+import { createServerClient } from '@supabase/ssr'
+
+function createApiClient(request: NextRequest) {
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll()
+        },
+        setAll() {
+          // read-only in API routes
+        },
+      },
+    }
+  )
+}
 
 export async function getAuthenticatedUser(request: NextRequest) {
-  // Check user ID from middleware-set header
-  const userId = request.headers.get('x-user-id')
-  const email = request.headers.get('x-user-email')
-  
-  if (!userId || !email) {
+  try {
+    const supabase = createApiClient(request)
+    const { data: { user }, error } = await supabase.auth.getUser()
+    if (error || !user) return null
+    return { id: user.id, email: user.email || '' }
+  } catch {
     return null
   }
-  
-  return { id: userId, email }
 }
 
 export async function requireAuth(request: NextRequest) {
@@ -27,8 +43,12 @@ export async function uploadToSupabaseStorage(
   data: Buffer,
   contentType: string
 ): Promise<string> {
-  const supabase = await createAdminClient()
-  
+  const { createClient } = await import('@supabase/supabase-js')
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
   const { data: uploadData, error } = await supabase
     .storage
     .from(bucket)
@@ -42,7 +62,6 @@ export async function uploadToSupabaseStorage(
     throw new Error(`Upload failed: ${error.message}`)
   }
 
-  // Get public URL
   const { data: { publicUrl } } = supabase
     .storage
     .from(bucket)
@@ -55,6 +74,10 @@ export async function deleteFromSupabaseStorage(
   bucket: string,
   path: string
 ): Promise<void> {
-  const supabase = await createAdminClient()
+  const { createClient } = await import('@supabase/supabase-js')
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
   await supabase.storage.from(bucket).remove([path])
 }
