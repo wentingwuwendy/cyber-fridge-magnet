@@ -5,7 +5,7 @@ import sharp from 'sharp'
 const COOPER_API_URL = 'https://cooper-api.com'
 const COOPER_API_KEY = process.env.COOPER_API_KEY
 const VISION_MODEL = 'nano-banana-2'
-const IMAGE_MODEL = 'imagen-3.0-generate-002'
+const IMAGE_MODEL = 'gpt-image-2'
 
 const BADGE_SYSTEM_PROMPT = `从图片中提取最有识别度的主体元素，做成一个小巧精致的旅行纪念冰箱贴图标。保留核心轮廓并适度简化，有明显的树脂/搪瓷/金属/亚克力磁贴质感，带立体厚度、微浮雕、描边、高光、边缘反光，不要添加阴影或磁铁手柄。图标居中偏上、不要太大、纯白背景、周围留白，不要文字。`
 
