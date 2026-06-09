@@ -9,7 +9,7 @@ interface GeoResult {
 }
 
 interface UploadPanelProps {
-  fridgeId: number
+  fridgeId: number | null
   onClose: () => void
   onUploadComplete: () => void
   onError: (msg: string) => void
