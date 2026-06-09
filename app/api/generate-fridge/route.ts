@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '../../../utils/supabase/api-helpers'
 
-const COOPER_API_URL = 'https://cooper-api.com'
-const COOPER_API_KEY = process.env.COOPER_API_KEY
-const MODEL = 'gpt-image-2'
+const SF_API_URL = 'https://api.siliconflow.cn'
+const SF_API_KEY = process.env.SILICONFLOW_API_KEY
+const IMAGE_MODEL = 'black-forest-labs/FLUX.1-schnell'
 
 const FRIDGE_STYLES: Record<string, string> = {
   'retro-american': '复古美式双开门冰箱，奶油白色烤漆，圆角设计，镀铬把手，正面视图，纯白背景',
@@ -28,42 +28,48 @@ export async function POST(request: NextRequest) {
   } else {
     styleDesc = FRIDGE_STYLES[styleKey]
     if (!styleDesc) {
-      // Random fallback
       const keys = Object.keys(FRIDGE_STYLES)
       styleDesc = FRIDGE_STYLES[keys[Math.floor(Math.random() * keys.length)]]
     }
   }
 
-  const prompt = `生成一张写实风格的${styleDesc}。冰箱占画面主体，背景纯白，无人物，无文字，无品牌标志，高清细节，产品摄影风格。`
+  const prompt = `A realistic ${styleDesc}, refrigerator as the main subject, pure white background, no people, no text, no brand logos, high detail, product photography style.`
 
   try {
-    const res = await fetch(`${COOPER_API_URL}/v1/images/generations`, {
+    const res = await fetch(`${SF_API_URL}/v1/images/generations`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${COOPER_API_KEY}`,
+        'Authorization': `Bearer ${SF_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: MODEL,
+        model: IMAGE_MODEL,
         prompt,
-        n: 1,
-        size: '1024x1024',
-        response_format: 'b64_json',
+        image_size: '1024x1024',
+        num_inference_steps: 4,
+        batch_size: 1,
       }),
       signal: AbortSignal.timeout(120000),
     })
 
     if (!res.ok) {
       const errText = await res.text()
-      console.error('Cooper API fridge generate error:', errText)
-      return NextResponse.json({ error: '生成失败' }, { status: 500 })
+      console.error('SiliconFlow fridge generate error:', errText)
+      return NextResponse.json({ error: '生成失败: ' + errText }, { status: 500 })
     }
 
     const data = await res.json()
-    const imageB64 = data.data?.[0]?.b64_json
-    if (!imageB64) {
+    // SiliconFlow returns { images: [{ url: "..." }] }
+    const imageUrl = data.images?.[0]?.url
+    if (!imageUrl) {
+      console.error('SiliconFlow no image in response:', JSON.stringify(data))
       return NextResponse.json({ error: 'AI未返回图片' }, { status: 500 })
     }
+
+    // Fetch the image and convert to base64
+    const imgRes = await fetch(imageUrl)
+    const imgBuffer = Buffer.from(await imgRes.arrayBuffer())
+    const imageB64 = imgBuffer.toString('base64')
 
     return NextResponse.json({ image: imageB64, mimeType: 'image/png' })
   } catch (e: any) {
