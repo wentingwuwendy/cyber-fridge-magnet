@@ -323,7 +323,7 @@ export default function Home() {
         )}
 
         {/* Upload panel */}
-        {panelOpen && currentFridgeId && (
+        {panelOpen && (
           <UploadPanel
             fridgeId={currentFridgeId}
             onClose={() => setPanelOpen(false)}
